@@ -122,79 +122,113 @@ def predict_image(img, model=disease_model):
     # Retrieve the class label
     return prediction
 
-# ===============================================================================================
-# ------------------------------------ FLASK APP -------------------------------------------------
+# Streamlit app layout
+def main():
+    st.title('Harvestify - Crop and Disease Prediction')
 
+    # Sidebar for user input
+    st.sidebar.title('User Inputs')
 
-app = Flask(__name__)
-
-# render home page
-
-
-@ app.route('/')
-def home():
-    title = 'Harvestify - Home'
-    return render_template('index.html', title=title)
-
-# render crop recommendation form page
-
-
-@ app.route('/crop-recommend')
-def crop_recommend():
-    title = 'Harvestify - Crop Recommendation'
-    return render_template('crop.html', title=title)
-
-# render fertilizer recommendation form page
-
-
-@ app.route('/fertilizer')
-def fertilizer_recommendation():
-    title = 'Harvestify - Fertilizer Suggestion'
-
-    return render_template('fertilizer.html', title=title)
-
-# render disease prediction input page
-
-
-
-
-# ===============================================================================================
-
-# RENDER PREDICTION PAGES
-
-# render crop recommendation result page
-
-
-@ app.route('/crop-predict', methods=['POST'])
-def crop_prediction():
-    title = 'Harvestify - Crop Recommendation'
-
-    if request.method == 'POST':
-        N = int(request.form['nitrogen'])
-        P = int(request.form['phosphorous'])
-        K = int(request.form['pottasium'])
-        ph = float(request.form['ph'])
-        rainfall = float(request.form['rainfall'])
-
-        # state = request.form.get("stt")
-        city = request.form.get("city")
-
-        if weather_fetch(city) != None:
-            temperature, humidity = weather_fetch(city)
-            data = np.array([[N, P, K, temperature, humidity, ph, rainfall]])
-            my_prediction = crop_recommendation_model.predict(data)
-            final_prediction = my_prediction[0]
-
-            return render_template('crop-result.html', prediction=final_prediction, title=title)
-
+    # User input components for weather data
+    city_name = st.sidebar.text_input('Enter City Name')
+    if st.sidebar.button('Fetch Weather'):
+        temperature, humidity = weather_fetch(city_name)
+        if temperature and humidity:
+            st.sidebar.write(f'Temperature: {temperature}°C, Humidity: {humidity}%')
         else:
+            st.sidebar.write('Weather data not found. Try again.')
 
-            return render_template('try_again.html', title=title)
+    # File uploader for disease prediction
+    st.subheader('Disease Prediction')
+    uploaded_file = st.file_uploader('Upload Plant Image')
+    if uploaded_file is not None:
+        try:
+            img = uploaded_file.read()
+            if img:
+                prediction = predict_image(img)
+                st.write(f'Predicted Disease: {prediction}')
+            else:
+                st.write('Invalid image file.')
+        except:
+            st.write('Error predicting disease.')
 
-# render fertilizer recommendation result page
+if __name__ == '__main__':
+    main()
 
 
-@ app.route('/fertilizer-predict', methods=['POST'])
+# # ===============================================================================================
+# # ------------------------------------ FLASK APP -------------------------------------------------
+
+
+# app = Flask(__name__)
+
+# # render home page
+
+
+# @ app.route('/')
+# def home():
+#     title = 'Harvestify - Home'
+#     return render_template('index.html', title=title)
+
+# # render crop recommendation form page
+
+
+# @ app.route('/crop-recommend')
+# def crop_recommend():
+#     title = 'Harvestify - Crop Recommendation'
+#     return render_template('crop.html', title=title)
+
+# # render fertilizer recommendation form page
+
+
+# @ app.route('/fertilizer')
+# def fertilizer_recommendation():
+#     title = 'Harvestify - Fertilizer Suggestion'
+
+#     return render_template('fertilizer.html', title=title)
+
+# # render disease prediction input page
+
+
+
+
+# # ===============================================================================================
+
+# # RENDER PREDICTION PAGES
+
+# # render crop recommendation result page
+
+
+# @ app.route('/crop-predict', methods=['POST'])
+# def crop_prediction():
+#     title = 'Harvestify - Crop Recommendation'
+
+#     if request.method == 'POST':
+#         N = int(request.form['nitrogen'])
+#         P = int(request.form['phosphorous'])
+#         K = int(request.form['pottasium'])
+#         ph = float(request.form['ph'])
+#         rainfall = float(request.form['rainfall'])
+
+#         # state = request.form.get("stt")
+#         city = request.form.get("city")
+
+#         if weather_fetch(city) != None:
+#             temperature, humidity = weather_fetch(city)
+#             data = np.array([[N, P, K, temperature, humidity, ph, rainfall]])
+#             my_prediction = crop_recommendation_model.predict(data)
+#             final_prediction = my_prediction[0]
+
+#             return render_template('crop-result.html', prediction=final_prediction, title=title)
+
+#         else:
+
+#             return render_template('try_again.html', title=title)
+
+# # render fertilizer recommendation result page
+
+
+#@ app.route('/fertilizer-predict', methods=['POST'])
 def fert_recommend():
     title = 'Harvestify - Fertilizer Suggestion'
 
